@@ -4,8 +4,9 @@ import Vue from 'vue'
 import App from './App'
 import router from './router'
 import axios from 'axios'
-
-
+import '@/assets/iconfont/test/iconfont.css'
+// import BScroll from 'better-scroll'
+import { hooks } from 'vue-hooks'
 
 import 'element-ui/lib/theme-chalk/index.css'
 import { 
@@ -26,8 +27,11 @@ Vue.use(Collapse)
 Vue.use(CollapseItem)
 Vue.use(Carousel)
 Vue.use(CarouselItem)
+Vue.use(hooks)
+// Vue.use(BScroll)
 
 Vue.prototype.$axios = axios;
+// Vue.prototype.$BScroll = BScroll;
 
 Vue.config.productionTip = false
 

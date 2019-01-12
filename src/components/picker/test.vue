@@ -1,16 +1,17 @@
-<style scoped lang="stylus">
-@import '../../stylus/components/grid.styl'
-</style>
-
 <template>
-  <div>
-
+  <div >
+    <mo-picker></mo-picker>
   </div>
 </template>
 
 <script>
+import MoPicker from './picker.vue'
 export default {
-  name: '`v-${name}`',
+  name: '',
+
+  components: {
+    MoPicker
+  },
 
   props: {
   },
@@ -25,6 +26,9 @@ export default {
 
   computed: {
   },
-
 }
 </script>
+
+<style scoped lang="stylus">
+
+</style>

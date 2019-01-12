@@ -1,26 +1,23 @@
-<style scoped lang="stylus">
-  button
-    padding: 10px;
-    border-radius: 6px;
-    border-color: #eeeeee;
-    background: white;
-    min-height: 25px;
-    width: 100px;
-    &:hover
-      border-color: #2d8cf0
-</style>
-
 <template>
-  <button @click="hanleClick">
-
+  <button @click.stop="hanleClick">
+    <i :class="icon"></i>
+    <slot></slot>
   </button>
 </template>
 
 <script>
 export default {
-  name: 'dm-button',
+  name: 'mo-button',
 
   props: {
+    icon: {
+      type: String,
+      default: ''
+    },
+    active: {
+      type: Boolean,
+      default: true
+    },
   },
 
   data () {
@@ -29,16 +26,29 @@ export default {
   },
 
   methods: {
-    hanleClick () {
-      this.$emit('change11', event)
+    hanleClick (e) {
+      if(!this.active){
+        event.preventDefault()
+        return 
+      }
+      this.$emit('click', event)
     }
   },
-
-  computed: {
-  },
-
-  created () {
-    console.log('混入对象')
-  }
 }
 </script>
+
+<style scoped lang="stylus">
+  bg-color = #4a4c5b
+  border = none
+  color = white
+
+  button
+    outline none
+    color color
+    background bg-color
+    border border
+    border-radius 2px
+    padding 10px
+    min-height 25px
+    width 6rem
+</style>

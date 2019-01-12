@@ -1,33 +1,59 @@
 <template>
-  <div 
-  v-show="isActive"
-  class="tabpane"
-  >
-    <slot></slot>
-  </div>
+    <div 
+    class="tabpane"
+    :style="tabPaneStyle"
+    ref="tabpane"
+    >
+      <div>
+        <slot></slot>
+      </div>
+    </div>
 </template>
 
 <script>
+import BScroll from 'better-scroll'
+
 export default {
   name: 'MoTabPane',
   
   props: {
-    label: String,
-    name: String,
+    icon: {
+      type: String,
+      default: ''
+    },
+    label: {
+      type: String,
+      default: ''
+    },
+    name: {
+      type: String,
+      default: ''
+    },
   },
-  
+  data () {
+    return {
+      tabPaneStyle: this.$parent.tabPaneStyle,
+    }
+  },
+
   computed: {
     isActive () {
       return this.$parent.activeName === this.name
     }
   },
-  mounted () {
+  mounted() {
+    if(this.$parent.scroll){
+      this.$nextTick(() => {
+        const scroll = new BScroll(this.$refs.tabpane)
+      })
+    }
   }
 }
 </script>
 
 <style lang="stylus" scoped>
   .tabpane
-    order 0
-    min-height 100%
+    width 100%
+    // padding 20px
+    // position relative
 </style>
