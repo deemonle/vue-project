@@ -1,5 +1,5 @@
 <template>
-  <div class="container">
+  <div class="container" v-show="isActive">
     <div class="mask-top"></div>
     <div class="picker-container">
       <div class="wheel-wrapper" 
@@ -34,13 +34,20 @@ export default {
     selectedIndex: {
       type: Array,
       default() {
-        return 0
+        return []
+      },
+    },
+    active: {
+      type: Boolean,
+      default() {
+        return false
       },
     },
   },
 
   data () {
     return {
+      dataLength: this.data.length,
       wheels: [],
       pickerValue: [],
       pickerText: [],
@@ -49,58 +56,76 @@ export default {
   },
 
   methods: {
-    getPickerdata() {
-      this.data.forEach((wheelData,index) => {
-        this.pickerValue[index] = wheelData[this.pickerIndex[index]].value
-        this.pickerText[index] = wheelData[this.pickerIndex[index]].text
+    //index is the wheelIndex
+    initBScroll(wheel, index) {
+      const BSWheel = new BScroll(wheel, {
+        wheel: {
+          selectedIndex: this.pickerIndex[index],
+          wheelWrapperClass: 'wheel-scroll',
+          wheelItemClass: 'wheel-item'
+        },
+        probeType: 3,
       })
+      return BSWheel
     },
-    genDispatchData(wheel, index) {
+    //index is the wheelIndex
+    getDispatchData(wheel, index) {
       this.pickerIndex[index] = wheel.getSelectedIndex()
-      this.getPickerdata()
+      const {pickerValue,pickerText,pickerIndex} = this
+      pickerValue[index] = this.data[index][pickerIndex[index]].value
+      pickerText[index] = this.data[index][pickerIndex[index]].text
+      return [pickerValue, pickerIndex, pickerText]
     },
-    getPickerIndex(wheel, index) {
-      this.pickerIndex[index] = wheel.getSelectedIndex()
+    //index is the wheelIndex
+    dispatchData(wheel, index) {
+      //if you don't remove this 'on event', it will be 'on event' repeated 
+      //when you call this function, you can also destroy the better-scroll 
+      //instantiation to aviod 'on event' repeated
+      wheel.on('scrollEnd',() => {
+        const oldIndex = this.pickerIndex[index]
+        const dispatchArray = this.getDispatchData(wheel, index)
+        if(oldIndex != this.pickerIndex[index]){
+          this.$emit('change',dispatchArray)
+        }
+        this.$emit('select',dispatchArray)
+      })
     },
     getWheels() {
-      if (!this.$refs.wrapper) {
-        return
-      }
       this.$refs.wrapper.forEach((wheelWrapper, index) => {
-        const wheel = new BScroll(wheelWrapper, {
-          wheel: {
-            selectedIndex: this.selectedIndex[index],
-            wheelWrapperClass: 'wheel-scroll',
-            wheelItemClass: 'wheel-item'
-          },
-          probeType: 3,
-        })
+        const wheel = this.initBScroll(wheelWrapper, index)
+        this.getDispatchData(wheel, index)
+        this.dispatchData(wheel, index)
         this.wheels[index] = wheel
-        this.genDispatchData(wheel, index)
-        wheel.on('scrollEnd',() => {
-          let oldIndex = this.pickerIndex[index]
-          this.genDispatchData(wheel, index)
-          if(oldIndex != this.pickerIndex[index]){
-            this.$emit('change',this.pickerValue,this.pickerIndex,this.pickerText)
-          }
-          this.$emit('select',this.pickerValue,this.pickerIndex,this.pickerText)
-        })
       })
     },
+    destroyWheels() {
+      this.wheels && this.wheels.forEach(wheel => {
+        wheel.destroy()
+      })
+        this.wheels = []
+    },
+    defNextTick() {
+      this.$nextTick(() => {
+        this.getWheels()
+        this.$emit('select',[this.pickerValue,this.pickerIndex,this.pickerText])
+      })
+    }
   },
 
-  mounted() {
-    this.$nextTick(() => {
-      this.getWheels()
-      this.$emit('select',this.pickerValue,this.pickerIndex,this.pickerText)
-    })
-  },
-
-  beforeDestroy() {
-    this.wheels && this.wheels.forEach((wheel) => {
-      wheel.destroy()
-    })
-    this.wheels = null
+  computed: {
+    isActive() {
+      if(this.active){
+        if(this.dataLength !== this.data.length){
+          this.dataLength = this.data.length
+          this.defNextTick()
+        }else{
+          this.defNextTick()
+        }
+      }else{
+        this.destroyWheels()
+      }
+      return this.active
+    },
   },
 }
 </script>

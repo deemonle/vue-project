@@ -1,13 +1,12 @@
 <template>
   <div >
     <mo-picker
-    v-show="active"
+    :active="active"
     :data="column"
-    :selectedIndex= "[1, 2]"
-    @select="getPickeData"
-    @change="getPickeData"
+    :selectedIndex="selectId"
     ></mo-picker>
     <button class="button" @click="handleClick">{{active}}</button>
+    <button class="button2" @click="addWheel">{{active}}</button>
   </div>
 </template>
 
@@ -30,13 +29,16 @@ export default {
         [{text: 'a',value: 'a'},{text: 'b',value: 'b'},{text: 'c',value: 'c'},{text: 'd',value: 'd'}],
         [{text: 'a',value: 'a'},{text: 'e',value: 'e'},{text: 'f',value: 'f'},{text: 'g',value: 'g'}]
       ],
-      active: true
+      active: false,
+      selectId: [1, 2]//当你需要改变column的长度时，selectedIndex也应改变
     }
   },
 
   methods: {
-    getPickeData(array) {
-      console.log(array)
+    addWheel(array) {
+      // console.log(array)//[value, index, text]
+      this.column.push([{text: 'a',value: 'a'},{text: 'e',value: 'e'},{text: 'f',value: 'f'},{text: 'g',value: 'g'}])
+      this.selectId.push(1)
     },
     // handleClick() {
     //   this.column = [
@@ -45,10 +47,12 @@ export default {
     //   ]
     // }
     handleClick() {
-      if(this.active)
+      if(this.active){
         this.active = false
-      else
+      }
+      else{
         this.active = true
+      }
     }
   },
 
@@ -77,5 +81,8 @@ export default {
   .button
     position absolute
     top 200px
+  .button2
+    position absolute
+    top 250px
 
 </style>
