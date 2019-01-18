@@ -117,6 +117,7 @@ export default {
       if(this.active){
         if(this.dataLength !== this.data.length){
           this.dataLength = this.data.length
+          this.destroyWheels()
           this.defNextTick()
         }else{
           this.defNextTick()
@@ -127,6 +128,9 @@ export default {
       return this.active
     },
   },
+  mounted() {
+    // console.log(this._initScroll)
+  }
 }
 </script>
 

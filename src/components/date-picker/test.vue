@@ -13,7 +13,7 @@
 
 <script>
 import BScroll from 'better-scroll'
-import MoPicker from './picker.vue'
+import MoPicker from './datePicker.vue'
 export default {
   name: '',
 
