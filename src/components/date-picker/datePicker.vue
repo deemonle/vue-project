@@ -29,7 +29,7 @@ export default {
     startTime: {
       type: Array,
       default() {
-        return [2015]
+        return [20105]
       }
     }
   },
