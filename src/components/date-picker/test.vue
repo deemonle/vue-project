@@ -15,13 +15,8 @@
 import BScroll from 'better-scroll'
 import MoPicker from './datePicker.vue'
 export default {
-  name: '',
-
   components: {
     MoPicker
-  },
-
-  props: {
   },
 
   data () {
