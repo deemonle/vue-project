@@ -36,12 +36,6 @@ export default {
       this.column.push([{text: 'aaaaa',value: 'aaaaa'},{text: 'e',value: 'e'},{text: 'f',value: 'f'},{text: 'g',value: 'g'}])
       this.selectId.push(1)
     },
-    // handleClick() {
-    //   this.column = [
-    //     [{text: 'b',value: 'b'},{text: 'c',value: 'c'},{text: 'd',value: 'd'}],
-    //     // [{text: 'a',value: 'a'},{text: 'e',value: 'e'},{text: 'f',value: 'f'},{text: 'g',value: 'g'}]
-    //   ]
-    // }
     onSelect() {
       console.log("a")
     },
