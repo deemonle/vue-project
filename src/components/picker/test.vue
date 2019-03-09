@@ -48,7 +48,7 @@ export default {
     //   ]
     // }
     onSelect() {
-      console.log("a")
+      console.log("test")
     },
     handleClick() {
       if(this.active){
