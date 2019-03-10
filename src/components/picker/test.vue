@@ -37,7 +37,6 @@ export default {
 
   methods: {
     addWheel(array) {
-      // console.log(array)//[value, index, text]
       this.column.push([{text: 'aaaaa',value: 'aaaaa'},{text: 'e',value: 'e'},{text: 'f',value: 'f'},{text: 'g',value: 'g'}])
       this.selectId.push(1)
     },
