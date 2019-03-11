@@ -129,7 +129,6 @@ export default {
     },
   },
   mounted() {
-    // console.log(this._initScroll)
   }
 }
 </script>
