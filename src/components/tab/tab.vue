@@ -114,7 +114,7 @@ export default {
         webkitTransform: translateX,
         msTransform: translateX,
       }
-    }//Common
+    }
   },
 
   computed:{
