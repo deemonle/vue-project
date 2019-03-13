@@ -66,7 +66,7 @@ export default {
     position absolute
     height 150px  //Easily modified
     width 100%
-    border 1px solid #eeeeee  //common
+    border 1px solid #eeeeee  
     .mask-top, .mask-bottom
       z-index 10
       width 100%
