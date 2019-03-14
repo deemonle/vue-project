@@ -6,8 +6,6 @@
     :selectedIndex="selectId"
     @select="onSelect"
     ></mo-picker>
-    <button class="button" @click="handleClick">{{active}}</button>
-    <button class="button2" @click="addWheel">{{active}}</button>
   </div>
 </template>
 
