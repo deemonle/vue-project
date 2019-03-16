@@ -1,12 +1,14 @@
 <template>
   <div class="container">
     <div class="current-date">
-      {{currentDate}}
+      <div>{{currentDate}}</div>
+      <button class="next-month" @click="handleClickLast">上一个</button>
+      <button class="last-month" @click="handleClickNext">下一个</button>
     </div>
     <div class="calendar">
-      <div class="calendar-row" v-for="row in rows" :key="row">
-        <div class="date-item" v-for="item in 7" :key="item">
-          {{(row - 1)*7 + item}}
+      <div class="calendar-row" v-for="(row, index) in rows" :key="index">
+        <div class="date-item" v-for="(value, index) in row" :key="index">
+          {{value}}
         </div>
       </div>
     </div>
@@ -24,25 +26,39 @@ export default {
         return ['一','二','三','四','五','六','日']
       }
     },
-    years: {
-      type: Array,
-      default() {
-        return ['2010','2020']
-      }
-    }
+    minDate: {
+      type: String,
+      default: '2000-01'
+    },
+    maxDate: {
+      type: String,
+      default: '2020-12'
+    },
   },
 
   data () {
     return {
       currentDate: {
-        type: String
+        type: Object
       },
-      rows: 0,
-      dateArray: [0, 1]
+      rows: {},
     }
   },
 
   methods: {
+    deepCopy(obj) {
+      let result = Array.isArray(obj) ? [] : {}
+      for(let key in obj) {
+        if(obj.hasOwnProperty(key)) {
+          if(obj[key]&&typeof obj[key] === 'object') {
+            result[key] = deepClone(obj[key]);
+          }else{
+            result[key] = obj[key]
+          }
+        }
+      }
+      return result
+    },
     numToChinese(num) {
       let arr = ['一','二','三','四','五','六','日']
       for(let i = 0; i < arr.length; i++){
@@ -61,11 +77,6 @@ export default {
       }
     },
     initDate() {
-      let today = new Date()
-      let year = today.getFullYear()
-      let month = today.getMonth()
-    },
-    getCurrentDate() {
       let date = new Date(),
           year = date.getFullYear() + "年",
           month = date.getMonth() + 1 + "月",
@@ -73,26 +84,130 @@ export default {
           week = "星期" + this.numToChinese(date.getDay())
       return year + month + day + " " + week
     },
-    getMonthDays(year,month) {
+    initCurrentDate() {
+      let result = {}
+      let date = new Date()
+      result = {
+        year: date.getFullYear(),
+        month: date.getMonth() + 1
+      }
+      return result
+    },
+    splitDate(date) {
+      let result = {}
+      const splitValue = date.split("-")
+      try{
+        if(!splitValue || splitValue.length < 2) {
+          throw new Error('时间格式不正确');
+      }
+        result = {
+          year: Number(splitValue[0]),
+          month: Number(splitValue[1]),
+        }
+      }catch(error){
+        console.log(error)
+      }
+      return result
+    },
+    getMinDate() {
+      return {
+        year: this.minDate
+      }
+    },
+    showNextMonth(year, month) {
+      let result = {year: year, month: month}
+      if(month === 12) {
+        result.month = 1
+        result.year = year + 1
+      }else{
+        result.month = month + 1
+      }
+      this.showCurrentMonth(result.year, result.month)
+      return result
+    },
+    showLastMonth(year, month) {
+      let result = {year: year, month: month}
+      if(month === 1) {
+        result.month = 12
+        result.year = year - 1
+      }else{
+        result.month = month - 1
+      }
+      this.showCurrentMonth(result.year, result.month)
+      return result
+    },
+    //日历排列核心代码 
+    getMonthDays(year,month) { //真实的月份
       let date = new Date(year, month, 0)//month, not month - 1
       return date.getDate()
     },
-    getFirstDay(year,month) {
+    getFirstDay(year,month) { //真实的月份
       let date = new Date(year, month - 1, 1)
       return this.numChange(date.getDay())
     },
-    getLastDay(year,month) {
-      let daysNumber = this.getMonthDays(year, month - 1)
-      let date = new Date(year, month, daysNumber)
+    getLastDay(year,month) { //真实的月份
+      let daysNumber = this.getMonthDays(year, month)
+      let date = new Date(year, month - 1, daysNumber)
       return this.numChange(date.getDay())
     },
-    getrows(year,month) {
-      let days = this.getMonthDays(year,month)
-      console.log(days)
-      let firstDay = this.getFirstDay(year,month)
-      console.log(firstDay)
-      let rows =  Math.ceil((firstDay + days - 1)/7)
-      return rows
+    getRowsLength(firstDay, days) {
+      return Math.ceil((firstDay + days - 1)/7)
+    },
+    lastMonthInfo(year, month) {//显示的上个月的信息
+      let lastMonth
+      let currentYear
+      if(month === 1) {
+        lastMonth = 12
+        currentYear = year - 1
+      }else{
+        lastMonth = month - 1
+        currentYear = year
+      }
+      return {
+        date: this.getLastDay(currentYear, lastMonth),//获取上月最后一天是星期几
+        days: this.getMonthDays(currentYear, lastMonth),//获取上个月的天数
+      }
+    },
+    currentMonthInfo(year, month) {
+      return {
+        days: this.getMonthDays(year,month), //获取当前月天数
+        firstDay: this.getFirstDay(year,month), //计算当前月第一天是星期几
+        lastDay: this.getLastDay(year,month) //计算当前月最后一天是星期几
+      }
+    },
+    showCurrentMonth(year,month) {
+      const currentMonth = this.currentMonthInfo(year,month),
+            lastMonth = this.lastMonthInfo(year, month)
+      const rowsLength = this.getRowsLength(currentMonth.firstDay, currentMonth.days) //计算当前月几行排列
+      let [row, rows] = [[], []]
+      let [currentMonthDate, nextMonthDate] = [1, 1]
+      let lastMonthStart = (lastMonth.date === 7) ? lastMonth.days + 1 : (lastMonth.days - lastMonth.date) + 1
+      let lastMonthEnd = lastMonth.days
+      for(let i = 0; i < rowsLength; i++) {
+        for(let j = 0; j < 7; j++) {
+          if(lastMonthStart - lastMonthEnd > 0 && currentMonthDate <= currentMonth.days){
+            row[j] = currentMonthDate
+            currentMonthDate++
+          }else if(currentMonthDate > currentMonth.days){
+            row[j] = nextMonthDate
+            nextMonthDate++
+          } else {
+            row[j] = lastMonthStart
+            lastMonthStart++
+          }
+        }
+        let deep = this.deepCopy(row)//深拷贝
+        rows[i] = deep
+      }
+      this.rows = rows
+    },
+
+    //
+    handleClickNext() {
+      this.currentDate = this.showNextMonth(this.currentDate.year ,this.currentDate.month)
+    },
+    handleClickLast() {
+      this.currentDate = this.showLastMonth(this.currentDate.year ,this.currentDate.month)
     }
   }, 
 
@@ -100,12 +215,11 @@ export default {
   },
 
   mounted() {
-    // console.log(this.getFirstDay(2019,3))
     // console.log(this.getLastDay(2019,3))
-    // console.log(this.getMonthDays(2019,12))
-    console.log(this.getrows(2019,3))
-    this.rows = this.getrows(2019,3)
-    this.currentDate = this.getCurrentDate()
+    // console.log(this.getLastDay(2019,2))
+    // console.log(this.getLastDay(2019,12))
+    this.currentDate = this.initCurrentDate()
+    this.showCurrentMonth(this.currentDate.year ,this.currentDate.month)
   },
 }
 </script>
