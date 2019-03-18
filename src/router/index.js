@@ -1,7 +1,7 @@
 import Vue from 'vue'
 import Router from 'vue-router'
 // import Carousel from '@/components/carousel/test'
-import Tab from '@/components/tab/test'
+// import Tab from '@/components/tab/test'
 // import Picker from '@/components/picker/test'
 import Picker from '@/components/date-picker/test'
 // import Anchor from '@/components/anchor/test'

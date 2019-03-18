@@ -1,9 +1,14 @@
 <template>
   <div class="container">
-    <div class="current-date">
-      <div>{{currentDate}}</div>
-      <button class="next-month" @click="handleClickLast">上一个</button>
-      <button class="last-month" @click="handleClickNext">下一个</button>
+    <div class="calendar-info">
+      <div class="current-date" icon="iconfont  icon-info-circle">{{currentDate.month}}</div>
+      <div class="calendar-button">
+        <button class="next-month" @click="handleClickLast">上一个</button>
+        <button class="last-month" @click="handleClickNext">下一个</button>
+      </div>
+    </div>
+    <div class="weeks">
+      <div class="weeks-item" v-for="item in weeks" :key="item">{{item}}</div>
     </div>
     <div class="calendar">
       <div class="calendar-row" v-for="(row, index) in rows" :key="index">
@@ -16,6 +21,29 @@
 </template>
 
 <script>
+const weekJson = {
+    1: '星期一',
+    2: '星期二',
+    3: '星期三',
+    4: '星期四',
+    5: '星期五',
+    6: '星期六',
+    7: '星期日',
+  };
+  const monthJson = {
+    1: '一月',
+    2: '二月',
+    3: '三月',
+    4: '四月',
+    5: '五月',
+    6: '六月',
+    7: '七月',
+    8: '八月',
+    9: '九月',
+    10: '十月',
+    11: '十一月',
+    12: '十二月',
+  };
 export default {
   name: 'MoDatePicker',
 
@@ -136,7 +164,7 @@ export default {
       this.showCurrentMonth(result.year, result.month)
       return result
     },
-    //日历排列核心代码 
+    //日历排列代码 
     getMonthDays(year,month) { //真实的月份
       let date = new Date(year, month, 0)//month, not month - 1
       return date.getDate()
@@ -208,6 +236,13 @@ export default {
     },
     handleClickLast() {
       this.currentDate = this.showLastMonth(this.currentDate.year ,this.currentDate.month)
+    },
+
+    selecteDate() {
+
+    },
+    getWeeks() {
+
     }
   }, 
 
@@ -229,19 +264,37 @@ export default {
     width 100%
     color white
     background-color #334a4a
-    .current-date
+    .calendar-info
+      display flex
+      justify-content space-between
       height 40px
-      padding 20px 20px 0 20px
       border-bottom 1px solid red
+      .current-date
+        display flex
+        height 40px
+        padding-left 20px
+        align-items: center
+      .calendar-button
+        display flex
+        align-items: center
+        padding-right 20px
+        .next-button
+          height 30px
+    .weeks
+      display flex
+      justify-content space-around
+      height 30px
+      .weeks-item
+        height 30px
+        text-align center
     .calendar
       display flex
       flex-direction column
       .calendar-row
         height 30px
         display flex
+        justify-content space-around
         .date-item
-          width 40px
-
-
-
+          width 30px
+          text-align center
 </style>
