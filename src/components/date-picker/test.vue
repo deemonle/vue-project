@@ -1,20 +1,17 @@
 <template>
-  <div >
-    <mo-picker
-    :active="active"
-    :data="column"
-    :selectedIndex="selectId"
+  <div>
+    <mo-date-picker
     @select="onSelect"
-    ></mo-picker>
+    >
+    </mo-date-picker>
   </div>
 </template>
 
 <script>
-import BScroll from 'better-scroll'
-import MoPicker from './datePicker.vue'
+import MoDatePicker from './datePicker.vue'
 export default {
   components: {
-    MoPicker
+    MoDatePicker
   },
 
   data () {
@@ -29,22 +26,9 @@ export default {
   },
 
   methods: {
-    addWheel(array) {
-      // console.log(array)//[value, index, text]
-      this.column.push([{text: 'aaaaa',value: 'aaaaa'},{text: 'e',value: 'e'},{text: 'f',value: 'f'},{text: 'g',value: 'g'}])
-      this.selectId.push(1)
+    onSelect(date) {
+      console.log(date)
     },
-    onSelect() {
-      console.log("a")
-    },
-    handleClick() {
-      if(this.active){
-        this.active = false
-      }
-      else{
-        this.active = true
-      }
-    }
   },
 
   computed: {
@@ -64,16 +48,5 @@ export default {
 </script>
 
 <style scoped lang="stylus">
-  .bscroll{
-    width: 100%;
-    height: 50px;
-    overflow: hidden;
-}
-  .button
-    position absolute
-    top 200px
-  .button2
-    position absolute
-    top 250px
 
 </style>

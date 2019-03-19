@@ -1,5 +1,5 @@
 <template>
-  <div >
+  <div>
     <mo-picker
     :active="active"
     :data="column"

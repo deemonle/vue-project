@@ -1,7 +1,10 @@
 <template>
   <div class="container">
-    <div class="calendar-info">
-      <div class="current-date" icon="iconfont  icon-info-circle">{{currentDate.month}}</div>
+    <div class="calendar-info"> 
+      <div class="current-date">
+        <div>{{selectedDate.year+"年"}}</div>
+        <div>{{selectedDate.month+"月"}}</div>
+        </div>
       <div class="calendar-button">
         <button class="next-month" @click="handleClickLast">上一个</button>
         <button class="last-month" @click="handleClickNext">下一个</button>
@@ -10,10 +13,18 @@
     <div class="weeks">
       <div class="weeks-item" v-for="item in weeks" :key="item">{{item}}</div>
     </div>
-    <div class="calendar">
-      <div class="calendar-row" v-for="(row, index) in rows" :key="index">
-        <div class="date-item" v-for="(value, index) in row" :key="index">
-          {{value}}
+    <div class="slide-container">
+      <div class="calendar">
+        <div class="calendar-row" v-for="(row, index) in rows" :key="index">
+          <div class="date-item" 
+          v-for="(value, index) in row" 
+          :key="index"
+          :class="{'current-date-border': value.active, 
+                  'selected-date-border': value.selectedActive, 
+                  'others-month-color': value.othersShow}"
+          @click="handleClickDate(value)">
+            {{value.day}}
+          </div>
         </div>
       </div>
     </div>
@@ -30,20 +41,7 @@ const weekJson = {
     6: '星期六',
     7: '星期日',
   };
-  const monthJson = {
-    1: '一月',
-    2: '二月',
-    3: '三月',
-    4: '四月',
-    5: '五月',
-    6: '六月',
-    7: '七月',
-    8: '八月',
-    9: '九月',
-    10: '十月',
-    11: '十一月',
-    12: '十二月',
-  };
+
 export default {
   name: 'MoDatePicker',
 
@@ -66,26 +64,66 @@ export default {
 
   data () {
     return {
-      currentDate: {
+      test: {
+        ddd: 'aaa'
+      },
+      currentDate: { //不变的值
+        year: '',
+        month: '',
+        day: '',
+        week: '',
+      },
+      selectedDate: {
+        year: '',
+        month: '',
+        day: '',
+        days: '',
+        week: '',
+        active: false,
+        selectedActive: false,
+        firstDay: '',
+        lastDay: '',
+      },
+      rows: {
         type: Object
       },
-      rows: {},
+      nextRows: {
+        type: Object
+      },
+      currentMonth: {
+        year: 0,
+        day: 0,
+        week: 0,
+        active: true
+      },
+      nextMonth: {
+        year: 0,
+        day: 0,
+        week: 0,
+        active: false
+      },
+      lastMonth: {
+        year: 0,
+        day: 0,
+        week: 0,
+        active: false
+      },
     }
   },
-
+  
   methods: {
     deepCopy(obj) {
-      let result = Array.isArray(obj) ? [] : {}
-      for(let key in obj) {
-        if(obj.hasOwnProperty(key)) {
-          if(obj[key]&&typeof obj[key] === 'object') {
-            result[key] = deepClone(obj[key]);
-          }else{
+      var result = Array.isArray(obj) ? [] : {};
+      for (var key in obj) {
+        if (obj.hasOwnProperty(key)) {
+          if (typeof obj[key] === 'object') {
+            result[key] = this.deepCopy(obj[key])   //递归复制
+          } else {
             result[key] = obj[key]
           }
         }
       }
-      return result
+      return result;
     },
     numToChinese(num) {
       let arr = ['一','二','三','四','五','六','日']
@@ -104,22 +142,16 @@ export default {
         return num
       }
     },
-    initDate() {
-      let date = new Date(),
-          year = date.getFullYear() + "年",
-          month = date.getMonth() + 1 + "月",
-          day = date.getDate() + "日",
-          week = "星期" + this.numToChinese(date.getDay())
-      return year + month + day + " " + week
-    },
     initCurrentDate() {
       let result = {}
       let date = new Date()
-      result = {
+      this.currentDate = {
         year: date.getFullYear(),
-        month: date.getMonth() + 1
+        month: date.getMonth() + 1,
+        day: date.getDate(),
+        week: date.getDay()
       }
-      return result
+      this.selectedDate = this.currentDate
     },
     splitDate(date) {
       let result = {}
@@ -142,7 +174,7 @@ export default {
         year: this.minDate
       }
     },
-    showNextMonth(year, month) {
+    monthAddOne(year,month) {
       let result = {year: year, month: month}
       if(month === 12) {
         result.month = 1
@@ -150,10 +182,9 @@ export default {
       }else{
         result.month = month + 1
       }
-      this.showCurrentMonth(result.year, result.month)
       return result
     },
-    showLastMonth(year, month) {
+    monthReduceOne(year,month) {
       let result = {year: year, month: month}
       if(month === 1) {
         result.month = 12
@@ -161,7 +192,16 @@ export default {
       }else{
         result.month = month - 1
       }
-      this.showCurrentMonth(result.year, result.month)
+      return result
+    },
+    showNextMonth(year, month) {
+      let result = this.monthAddOne(year,month)
+      this.rows = this.showCurrentMonth(result.year, result.month)
+      return result
+    },
+    showLastMonth(year, month) {
+      let result = this.monthReduceOne(year,month)
+      this.rows = this.showCurrentMonth(result.year, result.month)
       return result
     },
     //日历排列代码 
@@ -181,120 +221,191 @@ export default {
     getRowsLength(firstDay, days) {
       return Math.ceil((firstDay + days - 1)/7)
     },
+    
     lastMonthInfo(year, month) {//显示的上个月的信息
-      let lastMonth
-      let currentYear
-      if(month === 1) {
-        lastMonth = 12
-        currentYear = year - 1
-      }else{
-        lastMonth = month - 1
-        currentYear = year
-      }
+      let lastMonth = this.monthReduceOne(year, month)
       return {
-        date: this.getLastDay(currentYear, lastMonth),//获取上月最后一天是星期几
-        days: this.getMonthDays(currentYear, lastMonth),//获取上个月的天数
+        active: false,
+        othersShow: true,
+        day: 1,
+        year: lastMonth.year,
+        month: lastMonth.month,
+        lastDay: this.getLastDay(lastMonth.year, lastMonth.month),//获取上月最后一天是星期几
+        days: this.getMonthDays(lastMonth.year, lastMonth.month),//获取上个月的天数
       }
     },
     currentMonthInfo(year, month) {
       return {
+        active: true,
+        othersShow: false,
+        day: 1,
+        year: year,
+        month: month,
         days: this.getMonthDays(year,month), //获取当前月天数
         firstDay: this.getFirstDay(year,month), //计算当前月第一天是星期几
         lastDay: this.getLastDay(year,month) //计算当前月最后一天是星期几
       }
     },
+    nextMonthInfo(year, month) {
+      let nextMonth = this.monthAddOne(year, month)
+      return {
+        active: false,
+        othersShow: true,
+        day: 1,
+        year: nextMonth.year,
+        month: nextMonth.month,
+        lastDay: this.getLastDay(nextMonth.year, nextMonth.month),//获取下月最后一天是星期几
+        days: this.getMonthDays(nextMonth.year, nextMonth.month),//获取下个月的天数
+      }
+    },
+    
     showCurrentMonth(year,month) {
-      const currentMonth = this.currentMonthInfo(year,month),
-            lastMonth = this.lastMonthInfo(year, month)
-      const rowsLength = this.getRowsLength(currentMonth.firstDay, currentMonth.days) //计算当前月几行排列
       let [row, rows] = [[], []]
-      let [currentMonthDate, nextMonthDate] = [1, 1]
-      let lastMonthStart = (lastMonth.date === 7) ? lastMonth.days + 1 : (lastMonth.days - lastMonth.date) + 1
-      let lastMonthEnd = lastMonth.days
-      for(let i = 0; i < rowsLength; i++) {
+      this.currentMonth = this.currentMonthInfo(year,month)
+      this.lastMonth = this.lastMonthInfo(year, month)
+      this.nextMonth = this.nextMonthInfo(year, month)
+      // const rowsLength = this.getRowsLength(this.currentMonth.firstDay, this.currentMonth.days) //计算当前月几行排列
+      this.lastMonth.day = (this.lastMonth.lastDay === 7) ? 
+                            this.lastMonth.days + 1 : 
+                           (this.lastMonth.days - this.lastMonth.lastDay) + 1
+      for(let i = 0; i < 6; i++) {
         for(let j = 0; j < 7; j++) {
-          if(lastMonthStart - lastMonthEnd > 0 && currentMonthDate <= currentMonth.days){
-            row[j] = currentMonthDate
-            currentMonthDate++
-          }else if(currentMonthDate > currentMonth.days){
-            row[j] = nextMonthDate
-            nextMonthDate++
+          if(this.lastMonth.day - this.lastMonth.days > 0 && this.currentMonth.day <= this.currentMonth.days){
+            this.currentDateStyle(this.currentMonth)
+            this.currentMonth.week = j + 1
+            row[j] = this.deepCopy(this.currentMonth)
+            this.currentMonth.day++
+            
+          }else if(this.currentMonth.day > this.currentMonth.days){
+            this.currentDateStyle(this.nextMonth)
+            this.nextMonth.week = j + 1
+            row[j] = this.deepCopy(this.nextMonth)
+            this.nextMonth.day++
           } else {
-            row[j] = lastMonthStart
-            lastMonthStart++
+            this.currentDateStyle(this.lastMonth)
+            this.lastMonth.week = j + 1
+            row[j] = this.deepCopy(this.lastMonth)
+            this.lastMonth.day++
           }
         }
         let deep = this.deepCopy(row)//深拷贝
         rows[i] = deep
       }
-      this.rows = rows
+      return rows
     },
 
+    currentDateStyle(date) {
+      if(date.year === this.currentDate.year&&
+      date.month === this.currentDate.month&&
+      date.day === this.currentDate.day) {
+        date.active = true
+      }else{
+        date.active = false
+      }
+    },
     //
     handleClickNext() {
-      this.currentDate = this.showNextMonth(this.currentDate.year ,this.currentDate.month)
+      this.nextRows = this.deepCopy(this.rows)
+
+      this.selectedDate = this.showNextMonth(this.currentMonth.year ,this.currentMonth.month)
     },
     handleClickLast() {
-      this.currentDate = this.showLastMonth(this.currentDate.year ,this.currentDate.month)
+      this.selectedDate = this.showLastMonth(this.currentMonth.year ,this.currentMonth.month)
     },
 
-    selecteDate() {
-
+    handleClickDate(date) {
+      this.selectedDate.selectedActive = false
+      this.selectedDate = date
+      this.selectedDate.selectedActive = true
+      this.$emit('select', date)
     },
-    getWeeks() {
-
-    }
   }, 
-
-  computed: {
-  },
-
+  
   mounted() {
-    // console.log(this.getLastDay(2019,3))
-    // console.log(this.getLastDay(2019,2))
-    // console.log(this.getLastDay(2019,12))
-    this.currentDate = this.initCurrentDate()
-    this.showCurrentMonth(this.currentDate.year ,this.currentDate.month)
+    this.initCurrentDate()
+    this.rows = this.showCurrentMonth(this.currentDate.year ,this.currentDate.month)
   },
 }
 </script>
 
 <style scoped lang="stylus">
+  $background-color = #1867c0
+  $date-color = #fff
+  $other-date-color = #888
+  $current-date-border-color = #aaaaaa
+  $current-selected-border-color = #542516
   .container
     width 100%
-    color white
-    background-color #334a4a
+    color $date-color
+    background-color $background-color
     .calendar-info
       display flex
       justify-content space-between
-      height 40px
-      border-bottom 1px solid red
+      height 50px
+      // border-bottom 1px solid red
       .current-date
         display flex
-        height 40px
+        height 50px
         padding-left 20px
-        align-items: center
+        align-items center
+        justify-content center
       .calendar-button
         display flex
         align-items: center
         padding-right 20px
         .next-button
-          height 30px
+          height 50px
     .weeks
       display flex
-      justify-content space-around
+      padding 0 20px 0 20px
+      justify-content space-between
       height 30px
       .weeks-item
-        height 30px
+        width 30px
         text-align center
-    .calendar
-      display flex
-      flex-direction column
-      .calendar-row
-        height 30px
+    .slide-container
+      .next-calendar
         display flex
-        justify-content space-around
-        .date-item
-          width 30px
-          text-align center
+        padding 0 20px 20px 20px
+        flex-direction column
+        .next-calendar-row
+          height 40px
+          display flex
+          justify-content space-between
+          .next-date-item
+            height 36px
+            width 36px
+            display flex
+            border 2px solid $background-color
+            align-items center
+            justify-content center
+            &:hover 
+              border 2px solid $current-selected-border-color !important
+      .calendar
+        display flex
+        padding 0 20px 20px 20px
+        flex-direction column
+        .calendar-row
+          height 40px
+          display flex
+          justify-content space-between
+          .date-item
+            height 36px
+            width 36px
+            display flex
+            border 2px solid $background-color
+            align-items center
+            justify-content center
+            &:hover 
+              border 2px solid $current-selected-border-color !important
+    .selected-date
+      padding-left 30px
+
+  .current-date-border 
+    border: 2px solid $current-date-border-color !important
+    // background-color #dddd
+  .selected-date-border
+    border: 2px solid $current-selected-border-color !important
+  .others-month-color
+    color $other-date-color
 </style>
